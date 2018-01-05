@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Firebase web quick start</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <style>
+        .hide{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- <h1 id="bigOne"></h1> -->
+    <div class="container">
+                    <div class="col-sm-4" id="page1">
+                            <div class="form-group">
+                                    <input class="form-control is-valid" type="email" id="textEmail" placeholder="Email">
+                                </div>
+                                <div class="form-group">
+                                    <input class="form-control is-valid" type="password" id="textPassword" placeholder="Password">
+                                </div>
+                                <button type="button" class="btn btn-primary form-control" id="logIn">Log in</button>
+                                <button type="button" class="btn btn-info form-control" id="signUp">Sign up</button>
+                                <button type="button" class="btn btn-warning form-control" id="logOut">Log out</button>
+                    </div>
+                    <div class="col-sm-4 hide" id="page2">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info form-control" id="signUp" onclick="send_valification()">Send valified</button>
+                        </div>
+                    </div>
+                    <h3 class="validateMessage"></h3>
+    </div>
+    
+<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyCpgIWU5cPIzpfqRxSuPzzMTzT4poc5Xsc",
+    authDomain: "web-quickstart-667ae.firebaseapp.com",
+    databaseURL: "https://web-quickstart-667ae.firebaseio.com",
+    projectId: "web-quickstart-667ae",
+    storageBucket: "",
+    messagingSenderId: "692817273043"
+  };
+  firebase.initializeApp(config);
+</script>
+<script>
+    /** Reatlime Database */
+    // let bigOne = document.querySelector('#bigOne');
+    // let dbRef = firebase.database().ref().child('text');
+    // dbRef.on('value', snap => bigOne.textContent = snap.val());
+
+    /** Authentication */
+    const textEmail = document.querySelector('#textEmail');
+    const textPassword = document.querySelector('#textPassword');
+    const logIn = document.querySelector('#logIn');
+    const signUp = document.querySelector('#signUp');
+    const logOut = document.querySelector('#logOut');
+    const auth = firebase.auth();
+
+    logIn.addEventListener('click', e => {
+        let email = textEmail.value;
+        let password = textPassword.value;
+        const promise = auth.signInWithEmailAndPassword(email, password);
+        promise.catch((error) => {
+            let errorCode = error.code;
+            let errorMessage = error.message;
+            window.alert(errorMessage);
+        }).then((data) => {
+            window.alert('Accuess!');
+        });
+    });
+
+    signUp.addEventListener('click', e => {
+        let email = textEmail.value;
+        let password = textPassword.value;
+
+        document.querySelector('#page2').classList.remove('hide');
+        // const promise = auth.createUserWithEmailAndPassword(email, password);
+        // promise.catch(e => console.log(e.message));
+
+        /** Error of no validated */
+        auth.createUserWithEmailAndPassword(email, password).catch(function(error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            window.alert('Error:' + errorMessage);
+        });
+    });
+
+    /** Watch validate status changed. 👁 */
+    auth.onAuthStateChanged(user => {
+        if (user) {
+
+            let user = firebase.auth().currentUser;
+            let id = user.email;
+            let verified = user.emailVerified;
+            // document.querySelector('.validateMessage').textContent = 'currentUserEmail:' + id + ';' + 'currentUserVerified:' + verified;
+            /** If have verified hide Sign up block. */
+            if (verified) {
+                document.querySelector('.validateMessage').textContent = 'currentUserEmail:' + id + ';' + 'currentUserVerified:' + verified;
+            };
+        } else {
+            document.querySelector('.validateMessage').textContent = 'Not any user.'
+        }
+    });
+
+    /** Validate user email address 💪 */
+    function send_valification() {
+            let user = auth.currentUser;
+            user.sendEmailVerification().then(function() {
+                window.alert('Cheack your email.');
+            }).catch(function(error) {
+                window.alert(error);
+            });
+    };
+
+    /** Sign out */
+    logOut.addEventListener('click', e => {
+        auth.signOut();
+    });
+
+    // firebase.auth().onAuthStateChanged(firebaseUser => {
+    //     if (firebaseUser){
+    //         console.log(firebaseUser);
+    //         logOut.classList.remove('hide');
+    //     } else {
+    //         console.log('not logged in.');
+    //         logOut.classList.add('hide');
+    //     }
+    // });
+</script>
+</body>
+</html>
